@@ -1,0 +1,53 @@
+-- Data from kaggle : https://www.kaggle.com/datasets/danielfesalbon/covid-19-global-reports-early-march-2022
+
+-- Create Database
+CREATE DATABASE COVID_19_Global_Reports_early_March_2022
+
+-- Calculate the comfirmed cases in Canada and display the Cumulative Cumulative Confirmed Cases
+SELECT 
+	[Country/Region], 
+	Date, 
+	SUM(Confirmed) AS Confirmed,
+	SUM(SUM(Confirmed)) OVER (ORDER BY date) AS Cumulative_Confirmed_Cases
+FROM  covid_19_clean_complete_2022
+WHERE [Country/Region] = 'Canada'
+GROUP BY [Country/Region], date
+ORDER BY date
+
+-- Calculate the death cases in Canada and display the Cumulative Cumulative death Cases
+SELECT 
+	[Country/Region], 
+	Date, 
+	SUM(Deaths) AS Deaths,
+	SUM(SUM(Deaths)) OVER (ORDER BY date) AS Cumulative_Deaths_Cases
+FROM  covid_19_clean_complete_2022
+WHERE [Country/Region] = 'Canada'
+GROUP BY [Country/Region], date
+ORDER BY date
+
+-- Calculate the recovered cases in Canada and display the Cumulative Cumulative recovered Cases
+SELECT 
+	[Country/Region], 
+	Date, 
+	SUM(recovered) AS recovered,
+	SUM(SUM(recovered)) OVER (ORDER BY date) AS Cumulative_Recovered_Cases
+FROM  covid_19_clean_complete_2022
+WHERE [Country/Region] = 'Canada'
+GROUP BY [Country/Region], date
+ORDER BY date
+
+-- Calculate the active cases in Canada and display the Cumulative Cumulative active Cases
+WITH CTE AS (
+SELECT 
+	[Country/Region], 
+	Date, 
+	SUM(SUM(Confirmed)) OVER (ORDER BY date) AS Cumulative_Confirmed_Cases,
+	SUM(SUM(recovered)) OVER (ORDER BY date) AS Cumulative_Recovered_Cases,
+	SUM(SUM(Deaths)) OVER (ORDER BY date) AS Cumulative_Deaths_Cases
+FROM  covid_19_clean_complete_2022
+WHERE [Country/Region] = 'Canada'
+GROUP BY [Country/Region], date, Active
+)
+
+SELECT *, (Cumulative_Confirmed_Cases - Cumulative_Recovered_Cases - Cumulative_Deaths_Cases) AS Cumulative_Active_Cases
+FROM CTE
