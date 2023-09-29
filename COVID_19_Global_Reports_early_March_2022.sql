@@ -51,3 +51,22 @@ GROUP BY [Country/Region], date, Active
 
 SELECT *, (Cumulative_Confirmed_Cases - Cumulative_Recovered_Cases - Cumulative_Deaths_Cases) AS Cumulative_Active_Cases
 FROM CTE
+
+-- Create a stored procedure that generate the Cumulative Confirmed Cases via country
+CREATE PROCEDURE Get_Cumulative_Confirmed_Cases @Country NVARCHAR(50)
+AS
+BEGIN
+SELECT 
+	[Country/Region], 
+	Date, 
+	SUM(Confirmed) AS Confirmed,
+	SUM(SUM(Confirmed)) OVER (ORDER BY date) AS Cumulative_Confirmed_Cases
+FROM  covid_19_clean_complete_2022
+WHERE [Country/Region] = @Country
+GROUP BY [Country/Region], date
+ORDER BY date
+END
+	-- Sample Query
+EXEC Get_Cumulative_Confirmed_Cases @Country = 'Canada'
+EXEC Get_Cumulative_Confirmed_Cases @Country = 'Cuba'
+
